@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  my-sql-db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: taskmaster_db
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - taskmaster-net
+  
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - my-sql-db
+    environment:
+      - DB_URL=jdbc:mysql://mysql_db:3306/taskmaster_db?allowPublicKeyRetrieval=true&useSSL=false
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+    networks:
+      - taskmaster-net
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    networks:
+      - taskmaster-net
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
+
+networks:
+  taskmaster-net:
